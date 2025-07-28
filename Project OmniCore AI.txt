@@ -1,0 +1,127 @@
+// Project: OmniCore AI
+// Type: Full-Stack AI Aggregator
+
+// -------------------------
+// FRONTEND - Next.js + Tailwind
+// -------------------------
+
+// /pages/index.tsx
+import { useState } from "react";
+
+export default function Home() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState(null);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    const data = await res.json();
+    setResponse(data);
+    setLoading(false);
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-900 text-white p-4">
+      <h1 className="text-3xl font-bold mb-4">🤖 OmniCore AI</h1>
+      <form onSubmit={handleSubmit} className="mb-6">
+        <input
+          type="text"
+          placeholder="Ask me anything..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="p-2 w-full text-black"
+        />
+        <button type="submit" className="bg-blue-500 px-4 py-2 mt-2">Ask</button>
+      </form>
+      {loading && <p>Loading...</p>}
+      {response && (
+        <div className="bg-gray-800 p-4 rounded">
+          <h2 className="text-xl font-semibold">Summary</h2>
+          <p>{response.summary}</p>
+          <h3 className="mt-4">AI Responses:</h3>
+          <ul className="list-disc list-inside">
+            {Object.entries(response.sources).map(([ai, text]) => (
+              <li key={ai}><strong>{ai}:</strong> {text}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </main>
+  );
+}
+
+
+// -------------------------
+// BACKEND - API Route (/pages/api/ask.ts)
+// -------------------------
+
+// /pages/api/ask.ts
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  const { query } = req.body;
+
+  const sources = {
+    ChatGPT: `ChatGPT says: ${query} is complex but here's a simple explanation...`,
+    Claude: `Claude reflects deeply: ${query} involves nuanced reasoning...`,
+    DeepSeek: `DeepSeek finds that ${query} is discussed in recent research...`,
+    Perplexity: `Perplexity summarizes: ${query} has multiple perspectives...`,
+    Grok: `Grok quips: "${query}? Sounds like a job for sarcasm-bot!"`,
+  };
+
+  const summary = `In summary, your question "${query}" is explored across 5 AI perspectives: factual, ethical, research-backed, humorous, and concise.`;
+
+  return res.status(200).json({ summary, sources });
+}
+
+
+// -------------------------
+// tailwind.config.js
+// -------------------------
+module.exports = {
+  content: ["./pages/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+
+// -------------------------
+// package.json Dependencies
+// -------------------------
+{
+  "name": "omnicore-ai",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "13.4.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.2",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24"
+  }
+}
+
+
+// -------------------------
+// postcss.config.js
+// -------------------------
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
